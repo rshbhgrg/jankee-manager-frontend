@@ -57,6 +57,7 @@ export type {
   SortOrder,
   SortParams,
   DashboardStats,
+  DashboardMetrics,
   FormMode,
   LoadingState,
   AutocompleteOption,

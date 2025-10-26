@@ -79,8 +79,11 @@ export const QUERY_KEYS = {
   ACTIVITY: (id: string) => ['activities', id],
   ACTIVITIES_BY_SITE: (siteId: string) => ['activities', 'site', siteId],
   ACTIVITIES_BY_CLIENT: (clientId: string) => ['activities', 'client', clientId],
+  SITE_ACTIVITIES: (siteId: string) => ['activities', 'site', siteId], // Alias for consistency
+  CLIENT_ACTIVITIES: (clientId: string) => ['activities', 'client', clientId], // Alias for consistency
 
   // Dashboard
+  DASHBOARD: ['dashboard'],
   DASHBOARD_STATS: ['dashboard', 'stats'],
 } as const;
 

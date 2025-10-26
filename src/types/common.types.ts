@@ -82,6 +82,15 @@ export interface DashboardStats {
 }
 
 /**
+ * Dashboard Metrics (alias for DashboardStats)
+ *
+ * Extended metrics with occupancy rate
+ */
+export interface DashboardMetrics extends DashboardStats {
+  occupancyRate: number; // Percentage of active sites
+}
+
+/**
  * Form Mode
  *
  * Determines if form is in create or edit mode
