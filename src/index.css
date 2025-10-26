@@ -1,0 +1,42 @@
+/**
+ * Global Styles
+ *
+ * Tailwind CSS v4 base import - no config file needed
+ * Tailwind automatically scans for classes and generates CSS
+ */
+@import 'tailwindcss';
+
+/**
+ * Custom global styles
+ * Add any custom CSS below the Tailwind import
+ */
+
+/* Smooth scrolling for the whole page */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Base font settings */
+body {
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    'Roboto',
+    'Oxygen',
+    'Ubuntu',
+    'Cantarell',
+    'Fira Sans',
+    'Droid Sans',
+    'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Focus styles for accessibility */
+*:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
