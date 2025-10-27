@@ -4,21 +4,17 @@
  * Provides the overall application layout structure with:
  * - Fixed sidebar navigation on the left
  * - Header/topbar at the top
- * - Main content area
+ * - Main content area (renders nested routes via Outlet)
  * - Responsive design (sidebar collapses on mobile)
  *
  * This component wraps all main application pages
  */
 
-import { useState, ReactNode } from 'react';
+import { useState } from 'react';
+import { Outlet } from 'react-router-dom';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 import { cn } from '@/lib/utils';
-
-interface MainLayoutProps {
-  children: ReactNode;
-  className?: string;
-}
 
 /**
  * Main application layout
@@ -28,16 +24,17 @@ interface MainLayoutProps {
  * - Collapsible sidebar for mobile responsiveness
  * - Header with branding and user actions
  * - Scrollable content area
- *
- * @param children - Page content to render in the main area
- * @param className - Optional CSS classes for the main content
+ * - Renders nested routes via React Router's Outlet
  *
  * @example
- * <MainLayout>
- *   <DashboardPage />
- * </MainLayout>
+ * // Used in router configuration
+ * {
+ *   path: '/',
+ *   element: <MainLayout />,
+ *   children: [...]
+ * }
  */
-export function MainLayout({ children, className }: MainLayoutProps) {
+export function MainLayout() {
   // Sidebar collapsed state (for mobile/tablet)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
@@ -65,16 +62,15 @@ export function MainLayout({ children, className }: MainLayoutProps) {
         {/* Header - Fixed at top */}
         <Header onMenuClick={toggleSidebar} />
 
-        {/* Page content */}
+        {/* Page content - renders nested routes */}
         <main
           className={cn(
             'p-4 md:p-6 lg:p-8',
             'mt-16', // Offset by header height
-            'min-h-[calc(100vh-4rem)]', // Full height minus header
-            className
+            'min-h-[calc(100vh-4rem)]' // Full height minus header
           )}
         >
-          {children}
+          <Outlet />
         </main>
 
         {/* Footer (optional, can be added later) */}
