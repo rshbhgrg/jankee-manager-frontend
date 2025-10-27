@@ -1,5 +1,15 @@
-#\!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
+#!/bin/sh
+
+# Load nvm and set PATH for GUI Git clients (Fork, SourceTree, etc.)
+# This ensures Node.js and npx are available when committing from GUI apps
+
+# Load nvm if available
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+# Add common Node.js paths
+export PATH="$HOME/.nvm/versions/node/v20.19.4/bin:$PATH"
+export PATH="./node_modules/.bin:$PATH"
 
 # Run lint-staged to check and fix staged files before commit
 npx lint-staged

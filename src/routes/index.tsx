@@ -3,19 +3,21 @@
  *
  * Centralized route definitions using React Router v6
  * - All application routes
- * - Lazy loading for code splitting (future enhancement)
- * - Protected routes (future enhancement)
+ * - Protected routes with authentication
+ * - Public routes (login, register)
  * - 404 handling
  */
 
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
+import ProtectedRoute from '@/components/ProtectedRoute';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { SitesPage } from '@/pages/SitesPage';
 import { SiteFormPage } from '@/pages/SiteFormPage';
 import { ClientsPage } from '@/pages/ClientsPage';
 import { ClientFormPage } from '@/pages/ClientFormPage';
 import { ActivitiesPage } from '@/pages/ActivitiesPage';
+import LoginPage from '@/pages/LoginPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 
 /**
@@ -25,8 +27,16 @@ import { NotFoundPage } from '@/pages/NotFoundPage';
  * - Data loading
  * - Error boundaries
  * - Pending UI
+ * - Authentication protection
  */
 export const router = createBrowserRouter([
+  // Public routes (no layout)
+  {
+    path: '/login',
+    element: <LoginPage />,
+  },
+
+  // Protected routes (with layout)
   {
     path: '/',
     element: <MainLayout />,
@@ -35,7 +45,11 @@ export const router = createBrowserRouter([
       // Dashboard (Home)
       {
         index: true,
-        element: <DashboardPage />,
+        element: (
+          <ProtectedRoute>
+            <DashboardPage />
+          </ProtectedRoute>
+        ),
       },
 
       // Sites Routes
@@ -44,11 +58,19 @@ export const router = createBrowserRouter([
         children: [
           {
             index: true,
-            element: <SitesPage />,
+            element: (
+              <ProtectedRoute>
+                <SitesPage />
+              </ProtectedRoute>
+            ),
           },
           {
             path: 'new',
-            element: <SiteFormPage />,
+            element: (
+              <ProtectedRoute>
+                <SiteFormPage />
+              </ProtectedRoute>
+            ),
           },
           {
             path: ':id',
@@ -56,7 +78,11 @@ export const router = createBrowserRouter([
           },
           {
             path: ':id/edit',
-            element: <SiteFormPage />,
+            element: (
+              <ProtectedRoute>
+                <SiteFormPage />
+              </ProtectedRoute>
+            ),
           },
         ],
       },
@@ -67,11 +93,19 @@ export const router = createBrowserRouter([
         children: [
           {
             index: true,
-            element: <ClientsPage />,
+            element: (
+              <ProtectedRoute>
+                <ClientsPage />
+              </ProtectedRoute>
+            ),
           },
           {
             path: 'new',
-            element: <ClientFormPage />,
+            element: (
+              <ProtectedRoute>
+                <ClientFormPage />
+              </ProtectedRoute>
+            ),
           },
           {
             path: ':id',
@@ -79,7 +113,11 @@ export const router = createBrowserRouter([
           },
           {
             path: ':id/edit',
-            element: <ClientFormPage />,
+            element: (
+              <ProtectedRoute>
+                <ClientFormPage />
+              </ProtectedRoute>
+            ),
           },
         ],
       },
@@ -90,7 +128,11 @@ export const router = createBrowserRouter([
         children: [
           {
             index: true,
-            element: <ActivitiesPage />,
+            element: (
+              <ProtectedRoute>
+                <ActivitiesPage />
+              </ProtectedRoute>
+            ),
           },
           {
             path: 'new',
@@ -107,12 +149,14 @@ export const router = createBrowserRouter([
       {
         path: 'reports',
         element: (
-          <div className="flex h-[60vh] items-center justify-center">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold text-gray-900">Reports</h2>
-              <p className="mt-2 text-gray-600">Reports page coming soon</p>
+          <ProtectedRoute>
+            <div className="flex h-[60vh] items-center justify-center">
+              <div className="text-center">
+                <h2 className="text-2xl font-bold text-gray-900">Reports</h2>
+                <p className="mt-2 text-gray-600">Reports page coming soon</p>
+              </div>
             </div>
-          </div>
+          </ProtectedRoute>
         ),
       },
 
@@ -120,12 +164,14 @@ export const router = createBrowserRouter([
       {
         path: 'settings',
         element: (
-          <div className="flex h-[60vh] items-center justify-center">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold text-gray-900">Settings</h2>
-              <p className="mt-2 text-gray-600">Settings page coming soon</p>
+          <ProtectedRoute>
+            <div className="flex h-[60vh] items-center justify-center">
+              <div className="text-center">
+                <h2 className="text-2xl font-bold text-gray-900">Settings</h2>
+                <p className="mt-2 text-gray-600">Settings page coming soon</p>
+              </div>
             </div>
-          </div>
+          </ProtectedRoute>
         ),
       },
 
@@ -141,7 +187,10 @@ export const router = createBrowserRouter([
 /**
  * Route paths for reference
  *
- * Authenticated routes:
+ * Public routes:
+ * - /login (Login page)
+ *
+ * Protected routes (require authentication):
  * - / (Dashboard)
  * - /sites (Sites list)
  * - /sites/new (Create site)

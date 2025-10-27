@@ -49,9 +49,10 @@ export type SiteFormData = z.infer<typeof siteSchema>;
  * Client Validation Schema
  *
  * Validates client creation/update data
+ * Field names match backend schema
  */
 export const clientSchema = z.object({
-  clientName: z
+  name: z
     .string()
     .min(
       VALIDATION.CLIENT_NAME.MIN_LENGTH,
@@ -62,13 +63,23 @@ export const clientSchema = z.object({
       `Client name must be max ${VALIDATION.CLIENT_NAME.MAX_LENGTH} characters`
     ),
 
-  gstNo: z
+  contactPerson: z.string().optional(),
+  email: z.string().email('Invalid email format').optional().or(z.literal('')),
+  phone: z.string().optional(),
+  address: z.string().optional(),
+  notes: z.string().optional(),
+
+  gstNumber: z
     .string()
-    .length(
-      VALIDATION.GST_NUMBER.LENGTH,
-      `GST number must be exactly ${VALIDATION.GST_NUMBER.LENGTH} characters`
-    )
-    .regex(VALIDATION.GST_NUMBER.PATTERN, 'Invalid GST number format. Example: 29ABCDE1234F1Z5'),
+    .optional()
+    .refine(
+      (val) =>
+        !val ||
+        (val.length === VALIDATION.GST_NUMBER.LENGTH && VALIDATION.GST_NUMBER.PATTERN.test(val)),
+      {
+        message: `Invalid GST number format. Must be ${VALIDATION.GST_NUMBER.LENGTH} characters. Example: 29ABCDE1234F1Z5`,
+      }
+    ),
 });
 
 export type ClientFormData = z.infer<typeof clientSchema>;

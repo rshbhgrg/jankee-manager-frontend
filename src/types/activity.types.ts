@@ -26,44 +26,47 @@ export type BillType = 'quotation' | 'bill';
  * Main Activity Interface
  *
  * Represents a booking/transaction linking client to site over time
- * Contains denormalized fields (clientName, siteNo) for performance
+ * Field names match backend schema exactly
+ * Contains denormalized fields (clientName, siteNo) for UI display
  *
  * @property id - Unique identifier (UUID)
- * @property date - Activity date (when recorded)
- * @property clientId - Reference to client (FK)
- * @property clientName - Denormalized client name
+ * @property action - Type of activity (new, shift, flex_change)
  * @property siteId - Reference to site (FK)
- * @property siteNo - Denormalized site number
+ * @property clientId - Reference to client (FK)
+ * @property clientName - Denormalized client name (for display)
+ * @property siteNo - Denormalized site number (for display)
  * @property previousClientId - Previous client (for shifts)
- * @property previousClientName - Denormalized previous client name
- * @property action - Type of activity
- * @property dateOfPurchase - When booking was purchased
- * @property fromDate - Campaign start date
- * @property toDate - Campaign end date (optional for ongoing)
- * @property billNo - Invoice/quotation number
- * @property billType - Billing stage
+ * @property previousClientName - Denormalized previous client name (for display)
+ * @property startDate - Campaign start date
+ * @property endDate - Campaign end date (null for ongoing)
  * @property ratePerMonth - Monthly rental rate (INR)
- * @property remarks - Additional notes
+ * @property totalMonths - Duration in months
+ * @property totalAmount - Total contract amount
+ * @property printingCost - Cost of printing materials
+ * @property mountingCost - Cost of mounting/installation
+ * @property notes - Additional notes
+ * @property createdBy - User who created this activity
  * @property createdAt - Creation timestamp (ISO string)
  * @property updatedAt - Last update timestamp (ISO string)
  */
 export interface Activity {
   id: string;
-  date: string;
-  clientId: string;
-  clientName: string;
+  action: ActionType;
   siteId: string;
   siteNo: string;
+  clientId: string;
+  clientName: string;
   previousClientId?: string;
   previousClientName?: string;
-  action: ActionType;
-  dateOfPurchase: string;
-  fromDate: string;
-  toDate?: string;
-  billNo?: string;
-  billType?: BillType;
-  ratePerMonth?: number;
-  remarks?: string;
+  startDate: string;
+  endDate?: string | null;
+  ratePerMonth: string | number;
+  totalMonths?: number | null;
+  totalAmount?: string | number | null;
+  printingCost?: string | number | null;
+  mountingCost?: string | number | null;
+  notes?: string | null;
+  createdBy?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -73,20 +76,21 @@ export interface Activity {
  *
  * Data required to create a new activity
  * Omits id, denormalized fields, and timestamps
+ * Field names match backend schema
  */
 export interface CreateActivityRequest {
-  date: string;
-  clientId: string;
-  siteId: string;
-  previousClientId?: string;
   action: ActionType;
-  dateOfPurchase: string;
-  fromDate: string;
-  toDate?: string;
-  billNo?: string;
-  billType?: BillType;
-  ratePerMonth?: number;
-  remarks?: string;
+  siteId: string;
+  clientId: string;
+  previousClientId?: string;
+  startDate: string;
+  endDate?: string;
+  ratePerMonth: number | string;
+  totalMonths?: number;
+  totalAmount?: number | string;
+  printingCost?: number | string;
+  mountingCost?: number | string;
+  notes?: string;
 }
 
 /**
@@ -94,21 +98,22 @@ export interface CreateActivityRequest {
  *
  * Data for updating an existing activity
  * All fields are optional except id
+ * Field names match backend schema
  */
 export interface UpdateActivityRequest {
   id: string;
-  date?: string;
-  clientId?: string;
-  siteId?: string;
-  previousClientId?: string;
   action?: ActionType;
-  dateOfPurchase?: string;
-  fromDate?: string;
-  toDate?: string;
-  billNo?: string;
-  billType?: BillType;
-  ratePerMonth?: number;
-  remarks?: string;
+  siteId?: string;
+  clientId?: string;
+  previousClientId?: string;
+  startDate?: string;
+  endDate?: string;
+  ratePerMonth?: number | string;
+  totalMonths?: number;
+  totalAmount?: number | string;
+  printingCost?: number | string;
+  mountingCost?: number | string;
+  notes?: string;
 }
 
 /**
@@ -182,17 +187,17 @@ export const BILL_TYPE_LABELS: Record<BillType, string> = {
  * Helper function to check if activity is currently active
  */
 export const isActivityActive = (activity: Activity): boolean => {
-  if (!activity.toDate) return true; // Open-ended booking is active
+  if (!activity.endDate) return true; // Open-ended booking is active
   const today = new Date().toISOString().split('T')[0] ?? '';
-  return activity.toDate >= today;
+  return activity.endDate >= today;
 };
 
 /**
  * Helper function to calculate activity duration in months
  */
-export const calculateActivityDuration = (fromDate: string, toDate?: string): number => {
-  const from = new Date(fromDate);
-  const to = toDate ? new Date(toDate) : new Date();
+export const calculateActivityDuration = (startDate: string, endDate?: string | null): number => {
+  const from = new Date(startDate);
+  const to = endDate ? new Date(endDate) : new Date();
   const diffTime = Math.abs(to.getTime() - from.getTime());
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   return Math.ceil(diffDays / 30); // Approximate months
@@ -203,6 +208,107 @@ export const calculateActivityDuration = (fromDate: string, toDate?: string): nu
  */
 export const calculateActivityRevenue = (activity: Activity): number => {
   if (!activity.ratePerMonth) return 0;
-  const months = calculateActivityDuration(activity.fromDate, activity.toDate);
-  return activity.ratePerMonth * months;
+  const ratePerMonth =
+    typeof activity.ratePerMonth === 'string'
+      ? parseFloat(activity.ratePerMonth)
+      : activity.ratePerMonth;
+  const months = calculateActivityDuration(activity.startDate, activity.endDate);
+  return ratePerMonth * months;
+};
+
+/**
+ * Activity with Relations (API Response)
+ *
+ * Structure returned by backend for activities endpoints
+ * Includes full related objects (site, client, previousClient) instead of just IDs
+ * Field names match actual backend response
+ */
+export interface ActivityWithRelations {
+  activity: {
+    id: string;
+    action: ActionType;
+    siteId: string;
+    clientId: string;
+    previousClientId?: string | null;
+    startDate: string;
+    endDate?: string | null;
+    ratePerMonth: string;
+    totalMonths?: number | null;
+    totalAmount?: string | null;
+    printingCost?: string | null;
+    mountingCost?: string | null;
+    notes?: string | null;
+    createdBy?: string | null;
+    createdAt: string;
+    updatedAt: string;
+  };
+  site: {
+    id: string;
+    siteNo: string;
+    location: string;
+    type: string;
+    size: string;
+    latitude?: string | null;
+    longitude?: string | null;
+    address?: string | null;
+    notes?: string | null;
+    createdAt: string;
+    updatedAt: string;
+  } | null;
+  client: {
+    id: string;
+    clientNo: string;
+    name: string;
+    contactPerson?: string | null;
+    email?: string | null;
+    phone?: string | null;
+    address?: string | null;
+    gstNumber?: string | null;
+    notes?: string | null;
+    createdAt: string;
+    updatedAt: string;
+  } | null;
+  previousClient?: {
+    id: string;
+    clientNo: string;
+    name: string;
+    contactPerson?: string | null;
+    email?: string | null;
+    phone?: string | null;
+    address?: string | null;
+    gstNumber?: string | null;
+    notes?: string | null;
+    createdAt: string;
+    updatedAt: string;
+  } | null;
+  creator?: any | null;
+}
+
+/**
+ * Transform ActivityWithRelations to flat Activity structure
+ * Extracts nested data into a flat Activity object for UI consumption
+ * Maps backend field names to frontend display structure
+ */
+export const transformActivityWithRelations = (item: ActivityWithRelations): Activity => {
+  return {
+    id: item.activity.id,
+    action: item.activity.action,
+    siteId: item.site?.id ?? '',
+    siteNo: item.site?.siteNo ?? 'Unknown Site',
+    clientId: item.client?.id ?? '',
+    clientName: item.client?.name ?? 'Unknown Client',
+    previousClientId: item.activity.previousClientId ?? undefined,
+    previousClientName: item.previousClient?.name,
+    startDate: item.activity.startDate,
+    endDate: item.activity.endDate,
+    ratePerMonth: item.activity.ratePerMonth,
+    totalMonths: item.activity.totalMonths,
+    totalAmount: item.activity.totalAmount,
+    printingCost: item.activity.printingCost,
+    mountingCost: item.activity.mountingCost,
+    notes: item.activity.notes,
+    createdBy: item.activity.createdBy,
+    createdAt: item.activity.createdAt,
+    updatedAt: item.activity.updatedAt,
+  };
 };

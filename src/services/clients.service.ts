@@ -19,8 +19,11 @@ export const getClients = async (filters?: ClientFilters): Promise<Client[]> => 
     ...(filters?.searchTerm && { search: filters.searchTerm }),
   };
 
-  const response = await apiClient.get<Client[]>('/clients', { params });
-  return response.data;
+  const response = await apiClient.get<{ clients: Client[]; count: number }>('/clients', {
+    params,
+  });
+  // Backend returns {clients: [...], count: 4}, extract the clients array
+  return (response.data as any).clients || response.data;
 };
 
 /**
@@ -30,8 +33,9 @@ export const getClients = async (filters?: ClientFilters): Promise<Client[]> => 
  * @returns Promise<Client>
  */
 export const getClientById = async (id: string): Promise<Client> => {
-  const response = await apiClient.get<Client>(`/clients/${id}`);
-  return response.data;
+  const response = await apiClient.get<{ client: Client }>(`/clients/${id}`);
+  // Backend returns {client: {...}}, extract the client object
+  return (response.data as any).client || response.data;
 };
 
 /**
@@ -41,8 +45,9 @@ export const getClientById = async (id: string): Promise<Client> => {
  * @returns Promise<Client>
  */
 export const createClient = async (data: CreateClientRequest): Promise<Client> => {
-  const response = await apiClient.post<Client>('/clients', data);
-  return response.data;
+  const response = await apiClient.post<{ client: Client }>('/clients', data);
+  // Backend returns {client: {...}}, extract the client object
+  return (response.data as any).client || response.data;
 };
 
 /**
@@ -56,8 +61,9 @@ export const updateClient = async (
   id: string,
   data: Partial<CreateClientRequest>
 ): Promise<Client> => {
-  const response = await apiClient.put<Client>(`/clients/${id}`, data);
-  return response.data;
+  const response = await apiClient.put<{ client: Client }>(`/clients/${id}`, data);
+  // Backend returns {client: {...}}, extract the client object
+  return (response.data as any).client || response.data;
 };
 
 /**
@@ -77,8 +83,9 @@ export const deleteClient = async (id: string): Promise<void> => {
  * @returns Promise<Client[]>
  */
 export const searchClients = async (searchTerm: string): Promise<Client[]> => {
-  const response = await apiClient.get<Client[]>('/clients/search', {
+  const response = await apiClient.get<{ clients: Client[]; count: number }>('/clients/search', {
     params: { q: searchTerm },
   });
-  return response.data;
+  // Backend returns {clients: [...], count: N}, extract the clients array
+  return (response.data as any).clients || response.data;
 };

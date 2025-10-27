@@ -7,6 +7,8 @@
 
 import apiClient from './api';
 import type { Activity, CreateActivityRequest, ActivityFilters } from '@/types';
+import type { ActivityWithRelations, transformActivityWithRelations } from '@/types/activity.types';
+import { transformActivityWithRelations as transformActivity } from '@/types/activity.types';
 
 /**
  * Get all activities with optional filters
@@ -25,8 +27,16 @@ export const getActivities = async (filters?: ActivityFilters): Promise<Activity
     ...(filters?.searchTerm && { search: filters.searchTerm }),
   };
 
-  const response = await apiClient.get<Activity[]>('/activities', { params });
-  return response.data;
+  const response = await apiClient.get<{ activities: ActivityWithRelations[]; count: number }>(
+    '/activities',
+    { params }
+  );
+  // Backend returns {activities: [{activity, site, client}], count: N}
+  const data = response.data as any;
+  const activitiesWithRelations = data.activities || data;
+
+  // Transform nested structure to flat Activity objects
+  return activitiesWithRelations.map(transformActivity);
 };
 
 /**
@@ -36,8 +46,12 @@ export const getActivities = async (filters?: ActivityFilters): Promise<Activity
  * @returns Promise<Activity>
  */
 export const getActivityById = async (id: string): Promise<Activity> => {
-  const response = await apiClient.get<Activity>(`/activities/${id}`);
-  return response.data;
+  const response = await apiClient.get<{ activity: ActivityWithRelations }>(`/activities/${id}`);
+  // Backend may return {activity: {...}} or nested structure, extract and transform
+  const data = response.data as any;
+  const activityWithRelations = data.activity || data;
+
+  return transformActivity(activityWithRelations);
 };
 
 /**
@@ -47,8 +61,14 @@ export const getActivityById = async (id: string): Promise<Activity> => {
  * @returns Promise<Activity[]>
  */
 export const getActivitiesBySite = async (siteId: string): Promise<Activity[]> => {
-  const response = await apiClient.get<Activity[]>(`/activities/site/${siteId}`);
-  return response.data;
+  const response = await apiClient.get<{ activities: ActivityWithRelations[]; count: number }>(
+    `/activities/site/${siteId}`
+  );
+  // Backend returns {activities: [...], count: N}, extract and transform
+  const data = response.data as any;
+  const activitiesWithRelations = data.activities || data;
+
+  return activitiesWithRelations.map(transformActivity);
 };
 
 /**
@@ -58,8 +78,14 @@ export const getActivitiesBySite = async (siteId: string): Promise<Activity[]> =
  * @returns Promise<Activity[]>
  */
 export const getActivitiesByClient = async (clientId: string): Promise<Activity[]> => {
-  const response = await apiClient.get<Activity[]>(`/activities/client/${clientId}`);
-  return response.data;
+  const response = await apiClient.get<{ activities: ActivityWithRelations[]; count: number }>(
+    `/activities/client/${clientId}`
+  );
+  // Backend returns {activities: [...], count: N}, extract and transform
+  const data = response.data as any;
+  const activitiesWithRelations = data.activities || data;
+
+  return activitiesWithRelations.map(transformActivity);
 };
 
 /**

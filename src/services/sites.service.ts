@@ -21,8 +21,9 @@ export const getSites = async (filters?: SiteFilters): Promise<Site[]> => {
     ...(filters?.searchTerm && { search: filters.searchTerm }),
   };
 
-  const response = await apiClient.get<Site[]>('/sites', { params });
-  return response.data;
+  const response = await apiClient.get<{ sites: Site[]; count: number }>('/sites', { params });
+  // Backend returns {sites: [...], count: 5}, extract the sites array
+  return (response.data as any).sites || response.data;
 };
 
 /**
@@ -32,8 +33,9 @@ export const getSites = async (filters?: SiteFilters): Promise<Site[]> => {
  * @returns Promise<Site>
  */
 export const getSiteById = async (id: string): Promise<Site> => {
-  const response = await apiClient.get<Site>(`/sites/${id}`);
-  return response.data;
+  const response = await apiClient.get<{ site: Site }>(`/sites/${id}`);
+  // Backend returns {site: {...}}, extract the site object
+  return (response.data as any).site || response.data;
 };
 
 /**
@@ -43,8 +45,9 @@ export const getSiteById = async (id: string): Promise<Site> => {
  * @returns Promise<Site>
  */
 export const createSite = async (data: CreateSiteRequest): Promise<Site> => {
-  const response = await apiClient.post<Site>('/sites', data);
-  return response.data;
+  const response = await apiClient.post<{ site: Site }>('/sites', data);
+  // Backend returns {site: {...}}, extract the site object
+  return (response.data as any).site || response.data;
 };
 
 /**
@@ -55,8 +58,9 @@ export const createSite = async (data: CreateSiteRequest): Promise<Site> => {
  * @returns Promise<Site>
  */
 export const updateSite = async (id: string, data: Partial<CreateSiteRequest>): Promise<Site> => {
-  const response = await apiClient.put<Site>(`/sites/${id}`, data);
-  return response.data;
+  const response = await apiClient.put<{ site: Site }>(`/sites/${id}`, data);
+  // Backend returns {site: {...}}, extract the site object
+  return (response.data as any).site || response.data;
 };
 
 /**
@@ -76,10 +80,11 @@ export const deleteSite = async (id: string): Promise<void> => {
  * @returns Promise<Site[]>
  */
 export const searchSites = async (searchTerm: string): Promise<Site[]> => {
-  const response = await apiClient.get<Site[]>('/sites/search', {
+  const response = await apiClient.get<{ sites: Site[]; count: number }>('/sites/search', {
     params: { q: searchTerm },
   });
-  return response.data;
+  // Backend returns {sites: [...], count: N}, extract the sites array
+  return (response.data as any).sites || response.data;
 };
 
 /**

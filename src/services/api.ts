@@ -11,6 +11,7 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import { API_CONFIG, STORAGE_KEYS } from '@/config/constants';
 import type { ApiResponse, ApiError } from '@/types';
+import authService from './auth.service';
 
 /**
  * Create Axios instance with base configuration
@@ -30,8 +31,8 @@ const apiClient: AxiosInstance = axios.create({
  */
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // Add authentication token if available (future-ready)
-    const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+    // Add authentication token if available
+    const token = authService.getAccessToken();
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -148,14 +149,17 @@ apiClient.interceptors.response.use(
         );
       }
 
-      // Handle 401 - redirect to login (future)
+      // Handle 401 - redirect to login
       if (status === 401) {
         // Clear auth data
-        localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
+        authService.logout();
         localStorage.removeItem(STORAGE_KEYS.USER);
 
-        // Redirect to login (implement when auth is added)
-        // window.location.href = '/login';
+        // Redirect to login page
+        // Only redirect if not already on login page to prevent infinite loop
+        if (!window.location.pathname.includes('/login')) {
+          window.location.href = '/login';
+        }
       }
     } else if (error.request) {
       // Request made but no response received (network error)

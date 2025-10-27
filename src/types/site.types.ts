@@ -14,12 +14,16 @@ export type SiteType = 'unipole' | 'hoarding';
  * Main Site Interface
  *
  * Represents a physical advertising site (billboard/unipole)
+ * Field names match backend schema exactly
  * @property id - Unique identifier (UUID)
  * @property siteNo - Unique site number (alphanumeric, e.g., "12B")
  * @property location - Descriptive location (e.g., "DPS Circle")
  * @property type - Structure type (unipole or hoarding)
  * @property size - Dimensions as string (e.g., "20 * 10")
- * @property remarks - Optional notes about the site
+ * @property latitude - GPS latitude coordinate
+ * @property longitude - GPS longitude coordinate
+ * @property address - Full address
+ * @property notes - Optional notes about the site
  * @property createdAt - Creation timestamp (ISO string)
  * @property updatedAt - Last update timestamp (ISO string)
  */
@@ -29,7 +33,10 @@ export interface Site {
   location: string;
   type: SiteType;
   size: string;
-  remarks?: string;
+  latitude?: string | null;
+  longitude?: string | null;
+  address?: string | null;
+  notes?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -45,7 +52,10 @@ export interface CreateSiteRequest {
   location: string;
   type: SiteType;
   size: string;
-  remarks?: string;
+  latitude?: string;
+  longitude?: string;
+  address?: string;
+  notes?: string;
 }
 
 /**
@@ -60,7 +70,10 @@ export interface UpdateSiteRequest {
   location?: string;
   type?: SiteType;
   size?: string;
-  remarks?: string;
+  latitude?: string;
+  longitude?: string;
+  address?: string;
+  notes?: string;
 }
 
 /**

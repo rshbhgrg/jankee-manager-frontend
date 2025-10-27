@@ -82,12 +82,22 @@ export interface DashboardStats {
 }
 
 /**
- * Dashboard Metrics (alias for DashboardStats)
+ * Dashboard Metrics
  *
- * Extended metrics with occupancy rate
+ * Metrics returned by /dashboard/metrics endpoint
+ * Note: Backend returns different structure than DashboardStats
  */
-export interface DashboardMetrics extends DashboardStats {
-  occupancyRate: number; // Percentage of active sites
+export interface DashboardMetrics {
+  totalSites: number;
+  activeSites: number;
+  inactiveSites: number; // Backend field name (maps to availableSites in UI)
+  totalClients: number;
+  totalRevenue: number;
+  occupancyRate: number;
+  // Additional fields used in UI
+  totalActivities?: number;
+  newBookings?: number;
+  clientShifts?: number;
 }
 
 /**

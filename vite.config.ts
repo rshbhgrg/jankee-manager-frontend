@@ -25,15 +25,9 @@ export default defineConfig({
 
   // Development server configuration
   server: {
-    port: 3000,
+    port: 5573,
     host: true,
-    // Proxy API requests to backend during development
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3001',
-        changeOrigin: true,
-      },
-    },
+    // No proxy needed - frontend calls backend API directly via VITE_API_BASE_URL
   },
 
   // Build optimizations

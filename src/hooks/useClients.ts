@@ -99,7 +99,7 @@ export function useCreateClientMutation() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.CLIENTS });
 
       toast.success('Client created successfully', {
-        description: `${newClient.clientName} has been created.`,
+        description: `${newClient.name} has been created.`,
       });
     },
     onError: (error: Error) => {

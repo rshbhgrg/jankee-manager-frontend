@@ -71,25 +71,25 @@ export function ClientsPage() {
    */
   const columns: DataTableColumn<Client>[] = [
     {
-      id: 'clientName',
+      id: 'name',
       header: 'Client Name',
-      accessorKey: 'clientName',
+      accessorKey: 'name',
       sortable: true,
       cell: (client) => (
         <button
           onClick={() => navigate(ROUTES.CLIENTS_DETAIL(client.id))}
           className="font-medium text-blue-600 hover:underline"
         >
-          {client.clientName}
+          {client.name}
         </button>
       ),
     },
     {
-      id: 'gstNo',
+      id: 'gstNumber',
       header: 'GST Number',
-      accessorKey: 'gstNo',
+      accessorKey: 'gstNumber',
       sortable: true,
-      cell: (client) => <span className="font-mono text-sm">{client.gstNo}</span>,
+      cell: (client) => <span className="font-mono text-sm">{client.gstNumber || '-'}</span>,
     },
     {
       id: 'createdAt',
@@ -114,7 +114,7 @@ export function ClientsPage() {
           onView={() => navigate(ROUTES.CLIENTS_DETAIL(client.id))}
           onEdit={() => navigate(ROUTES.CLIENTS_EDIT(client.id))}
           onDelete={() => handleDelete(client.id)}
-          deleteMessage={`Are you sure you want to delete client "${client.clientName}"? This action cannot be undone.`}
+          deleteMessage={`Are you sure you want to delete client "${client.name}"? This action cannot be undone.`}
         />
       ),
     },

@@ -96,9 +96,9 @@ export function ActivitiesPage() {
     {
       id: 'date',
       header: 'Date',
-      accessorKey: 'date',
+      accessorKey: 'createdAt',
       sortable: true,
-      cell: (activity) => formatDate(activity.date),
+      cell: (activity) => formatDate(activity.createdAt),
     },
     {
       id: 'siteNo',
@@ -124,14 +124,14 @@ export function ActivitiesPage() {
     {
       id: 'fromDate',
       header: 'From',
-      accessorKey: 'fromDate',
-      cell: (activity) => formatDate(activity.fromDate),
+      accessorKey: 'startDate',
+      cell: (activity) => formatDate(activity.startDate),
     },
     {
       id: 'toDate',
       header: 'To',
-      accessorKey: 'toDate',
-      cell: (activity) => (activity.toDate ? formatDate(activity.toDate) : 'Ongoing'),
+      accessorKey: 'endDate',
+      cell: (activity) => (activity.endDate ? formatDate(activity.endDate) : 'Ongoing'),
     },
     {
       id: 'ratePerMonth',

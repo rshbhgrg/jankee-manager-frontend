@@ -105,10 +105,23 @@ export function DashboardPage() {
     return <ErrorState onRetry={refetchAll} />;
   }
 
-  // Calculate occupancy percentage
-  const occupancyPercent = metrics.occupancyRate.toFixed(1);
-  const isHighOccupancy = metrics.occupancyRate >= 80;
-  const isMediumOccupancy = metrics.occupancyRate >= 50 && metrics.occupancyRate < 80;
+  // Safe defaults for data with backend field mapping
+  const safeMetrics = {
+    totalSites: metrics.totalSites ?? 0,
+    activeSites: metrics.activeSites ?? 0,
+    availableSites: metrics.inactiveSites ?? 0, // Backend returns inactiveSites
+    totalClients: metrics.totalClients ?? 0,
+    totalRevenue: metrics.totalRevenue ?? 0,
+    occupancyRate: metrics.occupancyRate ?? 0,
+    totalActivities: metrics.totalActivities,
+    newBookings: metrics.newBookings,
+    clientShifts: metrics.clientShifts,
+  };
+
+  const activities = Array.isArray(recentActivities) ? recentActivities : [];
+  const occupancyPercent = safeMetrics.occupancyRate.toFixed(1);
+  const isHighOccupancy = safeMetrics.occupancyRate >= 80;
+  const isMediumOccupancy = safeMetrics.occupancyRate >= 50 && safeMetrics.occupancyRate < 80;
 
   return (
     <div className="space-y-6">
@@ -134,21 +147,21 @@ export function DashboardPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <MetricCard
           title="Total Sites"
-          value={metrics.totalSites}
-          description={`${metrics.activeSites} active, ${metrics.availableSites} available`}
+          value={safeMetrics.totalSites}
+          description={`${safeMetrics.activeSites} active, ${safeMetrics.availableSites} available`}
           icon={MapPin}
           color="blue"
         />
         <MetricCard
           title="Total Clients"
-          value={metrics.totalClients}
+          value={safeMetrics.totalClients}
           description="Active clients"
           icon={Users}
           color="green"
         />
         <MetricCard
           title="Total Revenue"
-          value={formatCurrency(metrics.totalRevenue)}
+          value={formatCurrency(safeMetrics.totalRevenue)}
           description="All time revenue"
           icon={TrendingUp}
           color="purple"
@@ -156,7 +169,7 @@ export function DashboardPage() {
         <MetricCard
           title="Occupancy Rate"
           value={`${occupancyPercent}%`}
-          description={`${metrics.activeSites} of ${metrics.totalSites} sites occupied`}
+          description={`${safeMetrics.activeSites} of ${safeMetrics.totalSites} sites occupied`}
           icon={ActivityIcon}
           color={isHighOccupancy ? 'green' : isMediumOccupancy ? 'orange' : 'blue'}
         />
@@ -186,7 +199,7 @@ export function DashboardPage() {
                         ? 'bg-orange-500'
                         : 'bg-blue-500'
                   )}
-                  style={{ width: `${metrics.occupancyRate}%` }}
+                  style={{ width: `${safeMetrics.occupancyRate}%` }}
                 />
               </div>
             </div>
@@ -194,30 +207,36 @@ export function DashboardPage() {
             {/* Stats Grid */}
             <div className="grid grid-cols-3 gap-4 pt-4">
               <div className="rounded-lg border bg-green-50 p-3">
-                <div className="text-2xl font-bold text-green-700">{metrics.activeSites}</div>
+                <div className="text-2xl font-bold text-green-700">{safeMetrics.activeSites}</div>
                 <div className="text-xs text-green-600">Active Sites</div>
               </div>
               <div className="rounded-lg border bg-orange-50 p-3">
-                <div className="text-2xl font-bold text-orange-700">{metrics.availableSites}</div>
+                <div className="text-2xl font-bold text-orange-700">
+                  {safeMetrics.availableSites}
+                </div>
                 <div className="text-xs text-orange-600">Available Sites</div>
               </div>
               <div className="rounded-lg border bg-blue-50 p-3">
-                <div className="text-2xl font-bold text-blue-700">{metrics.totalActivities}</div>
+                <div className="text-2xl font-bold text-blue-700">
+                  {safeMetrics.totalActivities ?? 0}
+                </div>
                 <div className="text-xs text-blue-600">Total Activities</div>
               </div>
             </div>
 
-            {/* Quick Stats */}
-            <div className="grid grid-cols-2 gap-4 border-t pt-4">
-              <div>
-                <div className="text-sm text-gray-500">New Bookings</div>
-                <div className="text-xl font-semibold">{metrics.newBookings}</div>
+            {/* Quick Stats - Only show if data is available */}
+            {(safeMetrics.newBookings || safeMetrics.clientShifts) && (
+              <div className="grid grid-cols-2 gap-4 border-t pt-4">
+                <div>
+                  <div className="text-sm text-gray-500">New Bookings</div>
+                  <div className="text-xl font-semibold">{safeMetrics.newBookings ?? 0}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-500">Client Shifts</div>
+                  <div className="text-xl font-semibold">{safeMetrics.clientShifts ?? 0}</div>
+                </div>
               </div>
-              <div>
-                <div className="text-sm text-gray-500">Client Shifts</div>
-                <div className="text-xl font-semibold">{metrics.clientShifts}</div>
-              </div>
-            </div>
+            )}
           </CardContent>
         </Card>
 
@@ -228,7 +247,7 @@ export function DashboardPage() {
             <CardDescription>Latest site activities and bookings</CardDescription>
           </CardHeader>
           <CardContent>
-            {!recentActivities || recentActivities.length === 0 ? (
+            {activities.length === 0 ? (
               <EmptyState
                 variant="no-data"
                 title="No recent activities"
@@ -237,7 +256,7 @@ export function DashboardPage() {
               />
             ) : (
               <div className="space-y-3">
-                {recentActivities.map((activity) => (
+                {activities.map((activity) => (
                   <div
                     key={activity.id}
                     className="flex items-start justify-between rounded-lg border p-3 transition-colors hover:bg-gray-50"
@@ -248,7 +267,7 @@ export function DashboardPage() {
                         <ActionTypeBadge action={activity.action} />
                       </div>
                       <div className="text-sm text-gray-600">{activity.clientName}</div>
-                      <div className="text-xs text-gray-500">{formatDate(activity.date)}</div>
+                      <div className="text-xs text-gray-500">{formatDate(activity.startDate)}</div>
                     </div>
                     {activity.ratePerMonth && (
                       <div className="text-right">

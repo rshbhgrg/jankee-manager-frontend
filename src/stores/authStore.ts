@@ -13,17 +13,10 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { STORAGE_KEYS } from '@/config/constants';
+import type { User, UserRole } from '@/types/user';
 
-/**
- * User interface
- */
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: 'admin' | 'user';
-  createdAt: string;
-}
+// Re-export User type for convenience
+export type { User, UserRole };
 
 /**
  * Auth State interface
@@ -35,13 +28,14 @@ interface AuthState {
   isAuthenticated: boolean;
 
   // Actions
-  login: (user: User, token: string) => void;
+  login: (user: User) => void;
   logout: () => void;
   updateUser: (user: Partial<User>) => void;
 
   // Permission checks
-  hasRole: (role: 'admin' | 'user') => boolean;
+  hasRole: (role: UserRole) => boolean;
   isAdmin: () => boolean;
+  isManager: () => boolean;
 }
 
 /**
@@ -60,13 +54,13 @@ interface AuthState {
  *   if (isAuthenticated) {
  *     return (
  *       <div>
- *         <span>Welcome, {user?.name}</span>
+ *         <span>Welcome, {user?.firstName} {user?.lastName}</span>
  *         <button onClick={logout}>Logout</button>
  *       </div>
  *     );
  *   }
  *
- *   return <button onClick={() => login(userData, token)}>Login</button>;
+ *   return <button onClick={() => login(userData)}>Login</button>;
  * }
  * ```
  */
@@ -78,23 +72,17 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       isAuthenticated: false,
 
-      // Login action
-      login: (user, token) => {
-        // Store token in localStorage for API client
-        localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, token);
-
+      // Login action - tokens are managed by authService
+      login: (user) => {
         set({
           user,
-          token,
+          token: null, // Token managed by authService in localStorage
           isAuthenticated: true,
         });
       },
 
       // Logout action
       logout: () => {
-        // Clear token from localStorage
-        localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
-
         // Clear auth state
         set({
           user: null,
@@ -129,6 +117,11 @@ export const useAuthStore = create<AuthState>()(
         const user = get().user;
         return user?.role === 'admin';
       },
+
+      isManager: () => {
+        const user = get().user;
+        return user?.role === 'manager' || user?.role === 'admin';
+      },
     }),
     {
       name: 'auth-storage', // localStorage key
@@ -149,17 +142,10 @@ export const useLogout = () => useAuthStore((state) => state.logout);
 /**
  * Initialize auth state on app load
  *
- * Call this in your app initialization to sync token from localStorage
+ * Call this in your app initialization to sync auth state from token
  */
 export const initializeAuth = () => {
-  const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
-  const state = useAuthStore.getState();
-
-  // If token exists in localStorage but not in store, sync it
-  if (token && !state.token) {
-    // In a real app, you'd validate the token with the API here
-    // For now, we'll just clear it if it's invalid
-    console.log('Token found in localStorage, validating...');
-    // If validation fails: state.logout();
-  }
+  // Auth state is handled by authService
+  // If user data exists in persisted store but token is invalid,
+  // the ProtectedRoute will redirect to login
 };

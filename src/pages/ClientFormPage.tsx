@@ -53,8 +53,13 @@ export function ClientFormPage() {
   } = useForm<ClientFormData>({
     resolver: zodResolver(clientSchema),
     defaultValues: {
-      clientName: '',
-      gstNo: '',
+      name: '',
+      contactPerson: '',
+      email: '',
+      phone: '',
+      address: '',
+      gstNumber: '',
+      notes: '',
     },
   });
 
@@ -64,8 +69,13 @@ export function ClientFormPage() {
   useEffect(() => {
     if (existingClient && isEditMode) {
       reset({
-        clientName: existingClient.clientName,
-        gstNo: existingClient.gstNo,
+        name: existingClient.name,
+        contactPerson: existingClient.contactPerson || '',
+        email: existingClient.email || '',
+        phone: existingClient.phone || '',
+        address: existingClient.address || '',
+        gstNumber: existingClient.gstNumber || '',
+        notes: existingClient.notes || '',
       });
     }
   }, [existingClient, isEditMode, reset]);
@@ -152,26 +162,80 @@ export function ClientFormPage() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {/* Client Name */}
             <FormField
-              name="clientName"
+              name="name"
               label="Client Name"
               type="text"
               placeholder="e.g., Acme Corporation"
               register={register}
-              error={errors.clientName}
+              error={errors.name}
               required
               helperText="Full legal name of the client"
             />
 
+            {/* Contact Person */}
+            <FormField
+              name="contactPerson"
+              label="Contact Person"
+              type="text"
+              placeholder="e.g., John Doe"
+              register={register}
+              error={errors.contactPerson}
+              helperText="Primary contact person's name"
+            />
+
+            {/* Email */}
+            <FormField
+              name="email"
+              label="Email"
+              type="email"
+              placeholder="e.g., contact@company.com"
+              register={register}
+              error={errors.email}
+              helperText="Contact email address"
+            />
+
+            {/* Phone */}
+            <FormField
+              name="phone"
+              label="Phone"
+              type="tel"
+              placeholder="e.g., +91 98765 43210"
+              register={register}
+              error={errors.phone}
+              helperText="Contact phone number"
+            />
+
+            {/* Address */}
+            <FormField
+              name="address"
+              label="Address"
+              type="textarea"
+              placeholder="Full address"
+              register={register}
+              error={errors.address}
+              helperText="Physical address of the client"
+            />
+
             {/* GST Number */}
             <FormField
-              name="gstNo"
+              name="gstNumber"
               label="GST Number"
               type="text"
               placeholder="e.g., 29ABCDE1234F1Z5"
               register={register}
-              error={errors.gstNo}
-              required
+              error={errors.gstNumber}
               helperText="15-character GST identification number (Format: 29ABCDE1234F1Z5)"
+            />
+
+            {/* Notes */}
+            <FormField
+              name="notes"
+              label="Notes"
+              type="textarea"
+              placeholder="Additional notes..."
+              register={register}
+              error={errors.notes}
+              helperText="Any additional information about the client"
             />
 
             {/* Form Actions */}
