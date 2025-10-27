@@ -17,6 +17,7 @@ import { SiteFormPage } from '@/pages/SiteFormPage';
 import { ClientsPage } from '@/pages/ClientsPage';
 import { ClientFormPage } from '@/pages/ClientFormPage';
 import { ActivitiesPage } from '@/pages/ActivitiesPage';
+import { ActivityFormPage } from '@/pages/ActivityFormPage';
 import LoginPage from '@/pages/LoginPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 
@@ -136,11 +137,19 @@ export const router = createBrowserRouter([
           },
           {
             path: 'new',
-            element: <Navigate to="/activities" replace />, // Placeholder - will be ActivityFormPage
+            element: (
+              <ProtectedRoute>
+                <ActivityFormPage />
+              </ProtectedRoute>
+            ),
           },
           {
             path: ':id/edit',
-            element: <Navigate to="/activities" replace />, // Placeholder - will be ActivityFormPage
+            element: (
+              <ProtectedRoute>
+                <ActivityFormPage />
+              </ProtectedRoute>
+            ),
           },
         ],
       },

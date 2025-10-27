@@ -2,8 +2,8 @@
  * Sites List Page
  *
  * Displays all sites in a searchable, filterable table with:
- * - Search by site number or location
- * - Filter by type (unipole/hoarding) and status
+ * - Client-side search by site number or location (instant)
+ * - Client-side filter by type (unipole/hoarding) (instant)
  * - Sortable columns
  * - Actions (view, edit, delete)
  * - Create new site button
@@ -11,7 +11,7 @@
  * Uses DataTable component for display
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -43,20 +43,37 @@ export function SitesPage() {
   const { sitesFilters, setSitesFilters, resetSitesFilters, setSitesSearch } = useFilterStore();
   const [showFilters, setShowFilters] = useState(false);
 
-  // Fetch sites with filters
-  const {
-    data: sites,
-    isLoading,
-    isError,
-    refetch,
-  } = useSitesQuery({
-    searchTerm: sitesFilters.searchTerm,
-    type: sitesFilters.type,
-    location: sitesFilters.location,
-  });
+  // Fetch ALL sites (no server-side filtering)
+  const { data: allSites, isLoading, isError, refetch } = useSitesQuery();
 
   // Delete mutation
   const { mutate: deleteSite } = useDeleteSiteMutation();
+
+  /**
+   * Client-side filtering - instant search and filter, no API calls
+   */
+  const filteredSites = useMemo(() => {
+    if (!allSites) return [];
+
+    return allSites.filter((site) => {
+      // Search filter
+      if (sitesFilters.searchTerm) {
+        const searchLower = sitesFilters.searchTerm.toLowerCase();
+        const matchesSearch =
+          site.siteNo.toLowerCase().includes(searchLower) ||
+          site.location.toLowerCase().includes(searchLower) ||
+          site.address?.toLowerCase().includes(searchLower);
+        if (!matchesSearch) return false;
+      }
+
+      // Type filter
+      if (sitesFilters.type && site.type !== sitesFilters.type) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [allSites, sitesFilters.searchTerm, sitesFilters.type]);
 
   /**
    * Handle site deletion
@@ -152,7 +169,7 @@ export function SitesPage() {
   }
 
   // No sites at all (first time)
-  if (!sites || (sites.length === 0 && !sitesFilters.searchTerm && !sitesFilters.type)) {
+  if (!allSites || (allSites.length === 0 && !sitesFilters.searchTerm && !sitesFilters.type)) {
     return (
       <div>
         <PageHeader title="Sites" description="Manage advertising sites and locations" />
@@ -173,7 +190,7 @@ export function SitesPage() {
       {/* Page Header */}
       <PageHeader
         title="Sites"
-        description={`${sites?.length || 0} sites total`}
+        description={`${filteredSites.length} of ${allSites?.length || 0} sites`}
         actions={
           <Button onClick={() => navigate(ROUTES.SITES_NEW)}>
             <Plus className="mr-2 h-4 w-4" />
@@ -293,9 +310,9 @@ export function SitesPage() {
       )}
 
       {/* Sites Table */}
-      {sites && sites.length > 0 ? (
+      {filteredSites && filteredSites.length > 0 ? (
         <DataTable
-          data={sites}
+          data={filteredSites}
           columns={columns}
           onRowClick={(site) => navigate(ROUTES.SITES_DETAIL(site.id))}
         />

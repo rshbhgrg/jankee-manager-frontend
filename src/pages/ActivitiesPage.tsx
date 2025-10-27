@@ -2,8 +2,8 @@
  * Activities List Page
  *
  * Displays all activities with:
- * - Search by site or client
- * - Filter by action type and date range
+ * - Client-side search by site or client (instant)
+ * - Client-side filter by action type and date range (instant)
  * - Sortable columns
  * - Actions (view, edit, delete)
  * - Create new activity button
@@ -11,7 +11,7 @@
  * Activities show site bookings and client interactions
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -50,23 +50,57 @@ export function ActivitiesPage() {
   } = useFilterStore();
   const [showFilters, setShowFilters] = useState(false);
 
-  // Fetch activities with filters
-  const {
-    data: activities,
-    isLoading,
-    isError,
-    refetch,
-  } = useActivitiesQuery({
-    searchTerm: activitiesFilters.searchTerm,
-    action: activitiesFilters.action,
-    fromDate: activitiesFilters.dateFrom,
-    toDate: activitiesFilters.dateTo,
-    clientId: activitiesFilters.clientId,
-    siteId: activitiesFilters.siteId,
-  });
+  // Fetch ALL activities (no server-side filtering)
+  const { data: allActivities, isLoading, isError, refetch } = useActivitiesQuery();
 
   // Delete mutation
   const { mutate: deleteActivity } = useDeleteActivityMutation();
+
+  /**
+   * Client-side filtering - instant search and filter, no API calls
+   */
+  const filteredActivities = useMemo(() => {
+    if (!allActivities) return [];
+
+    return allActivities.filter((activity) => {
+      // Search filter (search in site, client, notes)
+      if (activitiesFilters.searchTerm) {
+        const searchLower = activitiesFilters.searchTerm.toLowerCase();
+        const matchesSearch =
+          activity.siteNo.toLowerCase().includes(searchLower) ||
+          activity.clientName.toLowerCase().includes(searchLower) ||
+          activity.notes?.toLowerCase().includes(searchLower) ||
+          activity.previousClientName?.toLowerCase().includes(searchLower);
+        if (!matchesSearch) return false;
+      }
+
+      // Action type filter
+      if (activitiesFilters.action && activity.action !== activitiesFilters.action) {
+        return false;
+      }
+
+      // Date range filter
+      if (activitiesFilters.dateFrom) {
+        const activityDate = new Date(activity.startDate);
+        const fromDate = new Date(activitiesFilters.dateFrom);
+        if (activityDate < fromDate) return false;
+      }
+
+      if (activitiesFilters.dateTo) {
+        const activityDate = new Date(activity.startDate);
+        const toDate = new Date(activitiesFilters.dateTo);
+        if (activityDate > toDate) return false;
+      }
+
+      return true;
+    });
+  }, [
+    allActivities,
+    activitiesFilters.searchTerm,
+    activitiesFilters.action,
+    activitiesFilters.dateFrom,
+    activitiesFilters.dateTo,
+  ]);
 
   /**
    * Handle activity deletion
@@ -168,7 +202,7 @@ export function ActivitiesPage() {
   }
 
   // No activities at all (first time)
-  if (!activities || (activities.length === 0 && !hasActiveFilters(activitiesFilters))) {
+  if (!allActivities || (allActivities.length === 0 && !hasActiveFilters(activitiesFilters))) {
     return (
       <div>
         <PageHeader title="Activities" description="Manage site activities and bookings" />
@@ -187,7 +221,7 @@ export function ActivitiesPage() {
       {/* Page Header */}
       <PageHeader
         title="Activities"
-        description={`${activities?.length || 0} activities total`}
+        description={`${filteredActivities.length} of ${allActivities?.length || 0} activities`}
         actions={
           <Button onClick={() => navigate(ROUTES.ACTIVITIES_NEW)}>
             <Plus className="mr-2 h-4 w-4" />
@@ -273,8 +307,8 @@ export function ActivitiesPage() {
       )}
 
       {/* Activities Table */}
-      {activities && activities.length > 0 ? (
-        <DataTable data={activities} columns={columns} />
+      {filteredActivities && filteredActivities.length > 0 ? (
+        <DataTable data={filteredActivities} columns={columns} />
       ) : (
         <EmptyState
           variant="no-results"

@@ -2,7 +2,7 @@
  * Clients List Page
  *
  * Displays all clients in a searchable table with:
- * - Search by client name or GST number
+ * - Client-side search by name or GST number (instant, no API calls)
  * - Sortable columns
  * - Actions (view, edit, delete)
  * - Create new client button
@@ -10,6 +10,7 @@
  * Uses DataTable component for display
  */
 
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -32,18 +33,30 @@ export function ClientsPage() {
   const navigate = useNavigate();
   const { clientsFilters, setClientsSearch, resetClientsFilters } = useFilterStore();
 
-  // Fetch clients with filters
-  const {
-    data: clients,
-    isLoading,
-    isError,
-    refetch,
-  } = useClientsQuery({
-    searchTerm: clientsFilters.searchTerm,
-  });
+  // Fetch ALL clients (no server-side filtering)
+  const { data: allClients, isLoading, isError, refetch } = useClientsQuery();
 
   // Delete mutation
   const { mutate: deleteClient } = useDeleteClientMutation();
+
+  /**
+   * Client-side filtering - instant search, no API calls
+   */
+  const filteredClients = useMemo(() => {
+    if (!allClients) return [];
+    if (!clientsFilters.searchTerm) return allClients;
+
+    const searchLower = clientsFilters.searchTerm.toLowerCase();
+    return allClients.filter((client) => {
+      // Search in name, GST number, contact person, email
+      return (
+        client.name.toLowerCase().includes(searchLower) ||
+        client.gstNumber?.toLowerCase().includes(searchLower) ||
+        client.contactPerson?.toLowerCase().includes(searchLower) ||
+        client.email?.toLowerCase().includes(searchLower)
+      );
+    });
+  }, [allClients, clientsFilters.searchTerm]);
 
   /**
    * Handle client deletion
@@ -135,7 +148,7 @@ export function ClientsPage() {
   }
 
   // No clients at all (first time)
-  if (!clients || (clients.length === 0 && !clientsFilters.searchTerm)) {
+  if (!allClients || (allClients.length === 0 && !clientsFilters.searchTerm)) {
     return (
       <div>
         <PageHeader title="Clients" description="Manage your advertising clients" />
@@ -149,7 +162,7 @@ export function ClientsPage() {
       {/* Page Header */}
       <PageHeader
         title="Clients"
-        description={`${clients?.length || 0} clients total`}
+        description={`${filteredClients.length} of ${allClients?.length || 0} clients`}
         actions={
           <Button onClick={() => navigate(ROUTES.CLIENTS_NEW)}>
             <Plus className="mr-2 h-4 w-4" />
@@ -176,9 +189,9 @@ export function ClientsPage() {
       </div>
 
       {/* Clients Table */}
-      {clients && clients.length > 0 ? (
+      {filteredClients && filteredClients.length > 0 ? (
         <DataTable
-          data={clients}
+          data={filteredClients}
           columns={columns}
           onRowClick={(client) => navigate(ROUTES.CLIENTS_DETAIL(client.id))}
         />
