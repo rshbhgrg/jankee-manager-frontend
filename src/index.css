@@ -7,6 +7,21 @@
 @import 'tailwindcss';
 
 /**
+ * Tailwind v4 Theme Configuration
+ * Define custom colors as CSS theme variables
+ */
+@theme {
+  --color-popover: #ffffff;
+  --color-popover-foreground: #09090b;
+  --color-accent: #f4f4f5;
+  --color-accent-foreground: #18181b;
+  --color-muted: #f4f4f5;
+  --color-muted-foreground: #71717a;
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #fafafa;
+}
+
+/**
  * Custom global styles
  * Add any custom CSS below the Tailwind import
  */
@@ -33,6 +48,8 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
 }
 
 /* Focus styles for accessibility */
