@@ -10,7 +10,8 @@
  * Fixed at the top of the viewport
  */
 
-import { Menu } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Menu, LogOut, User as UserIcon, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -21,6 +22,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import { useAuthStore } from '@/stores/authStore';
+import { getUserFullName, getUserInitials } from '@/types/user';
+import authService from '@/services/auth.service';
+import { ROUTES } from '@/config/constants';
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -33,7 +38,8 @@ interface HeaderProps {
  * Features:
  * - Responsive menu toggle for mobile
  * - App branding
- * - User account dropdown
+ * - User account dropdown with real data
+ * - Logout functionality
  * - Sticky positioning
  *
  * @param onMenuClick - Callback to toggle mobile sidebar
@@ -43,6 +49,28 @@ interface HeaderProps {
  * <Header onMenuClick={toggleSidebar} />
  */
 export function Header({ onMenuClick, className }: HeaderProps) {
+  const navigate = useNavigate();
+  const { user, logout: clearAuthState } = useAuthStore();
+
+  /**
+   * Handle user logout
+   */
+  const handleLogout = () => {
+    // Clear tokens from localStorage
+    authService.logout();
+
+    // Clear auth state from store
+    clearAuthState();
+
+    // Redirect to login page
+    navigate(ROUTES.LOGIN);
+  };
+
+  // Fallback values if user data is not available
+  const userFullName = user ? getUserFullName(user) : 'User';
+  const userInitials = user ? getUserInitials(user) : 'U';
+  const userEmail = user?.email || 'user@example.com';
+
   return (
     <header
       className={cn(
@@ -76,25 +104,34 @@ export function Header({ onMenuClick, className }: HeaderProps) {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex items-center gap-2">
-                {/* User avatar placeholder */}
+                {/* User avatar with initials */}
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-sm font-medium text-white">
-                  U
+                  {userInitials}
                 </div>
-                <span className="hidden text-sm font-medium md:inline">User</span>
+                <span className="hidden text-sm font-medium md:inline">{userFullName}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium">User Name</p>
-                  <p className="text-xs text-gray-500">user@example.com</p>
+                  <p className="text-sm font-medium">{userFullName}</p>
+                  <p className="text-xs text-gray-500">{userEmail}</p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Profile</DropdownMenuItem>
-              <DropdownMenuItem>Settings</DropdownMenuItem>
+              <DropdownMenuItem>
+                <UserIcon className="mr-2 h-4 w-4" />
+                Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Settings className="mr-2 h-4 w-4" />
+                Settings
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-red-600">Log out</DropdownMenuItem>
+              <DropdownMenuItem className="text-red-600" onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Log out
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
