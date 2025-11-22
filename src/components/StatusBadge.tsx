@@ -134,6 +134,14 @@ const variantConfig: Record<
   },
 };
 
+const fallbackConfig = {
+  bg: 'bg-slate-100',
+  text: 'text-slate-700',
+  border: 'border-slate-200',
+  dot: 'bg-slate-400',
+  label: 'Status',
+};
+
 /**
  * Status badge component
  *
@@ -161,7 +169,12 @@ const variantConfig: Record<
  * ```
  */
 export function StatusBadge({ variant, label, showDot = false, className }: StatusBadgeProps) {
-  const config = variantConfig[variant];
+  const config = variantConfig[variant] ?? fallbackConfig;
+
+  if (process.env.NODE_ENV !== 'production' && !variantConfig[variant]) {
+    console.warn(`StatusBadge: unsupported variant "${variant}", falling back to default styling.`);
+  }
+
   const displayLabel = label || config.label;
 
   return (

@@ -104,7 +104,7 @@ export const activitySchema = z
       message: 'Please select an action type',
     }),
 
-    dateOfPurchase: z.string().min(1, 'Date of purchase is required'),
+    dateOfPublish: z.string().min(1, 'Date of publish is required'),
 
     fromDate: z.string().min(1, 'From date is required'),
 
@@ -118,7 +118,7 @@ export const activitySchema = z
       )
       .optional(),
 
-    billType: z.enum(['quotation', 'bill']).optional(),
+    billType: z.enum(['quotation', 'bill', 'foc']).optional(),
 
     ratePerMonth: z
       .number()
@@ -156,14 +156,14 @@ export const activitySchema = z
   )
   .refine(
     (data) => {
-      // fromDate should be on or after dateOfPurchase
-      if (data.fromDate && data.dateOfPurchase) {
-        return new Date(data.fromDate) >= new Date(data.dateOfPurchase);
+      // fromDate should be on or after dateOfPublish
+      if (data.fromDate && data.dateOfPublish) {
+        return new Date(data.fromDate) >= new Date(data.dateOfPublish);
       }
       return true;
     },
     {
-      message: 'Start date should be on or after purchase date',
+      message: 'Start date should be on or after publish date',
       path: ['fromDate'],
     }
   );

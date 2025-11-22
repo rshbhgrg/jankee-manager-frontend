@@ -19,8 +19,9 @@ export type ActionType = 'shift' | 'new' | 'flex_change';
  *
  * @value quotation - Initial pricing proposal
  * @value bill - Confirmed invoice after booking
+ * @value foc - Free of charge / complimentary booking
  */
-export type BillType = 'quotation' | 'bill';
+export type BillType = 'quotation' | 'bill' | 'foc';
 
 /**
  * Main Activity Interface
@@ -181,6 +182,7 @@ export const ACTION_TYPE_LABELS: Record<ActionType, string> = {
 export const BILL_TYPE_LABELS: Record<BillType, string> = {
   quotation: 'Quotation',
   bill: 'Bill',
+  foc: 'FOC',
 };
 
 /**

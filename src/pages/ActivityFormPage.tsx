@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/select';
 import { PageHeader } from '@/components/PageHeader';
 import { FormField } from '@/components/forms/FormField';
+import { ClientCombobox } from '@/components/forms/ClientCombobox';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { ErrorState } from '@/components/EmptyState';
 import {
@@ -79,7 +80,7 @@ export function ActivityFormPage() {
       clientId: '',
       siteId: '',
       action: '',
-      dateOfPurchase: new Date().toISOString().split('T')[0] ?? '',
+      dateOfPublish: new Date().toISOString().split('T')[0] ?? '',
       fromDate: new Date().toISOString().split('T')[0] ?? '',
       toDate: '',
       billNo: '',
@@ -104,7 +105,7 @@ export function ActivityFormPage() {
         siteId: existingActivity.siteId,
         action: existingActivity.action,
         previousClientId: existingActivity.previousClientId || '',
-        dateOfPurchase: existingActivity.startDate?.split('T')[0] ?? '',
+        dateOfPublish: existingActivity.startDate?.split('T')[0] ?? '',
         fromDate: existingActivity.startDate?.split('T')[0] ?? '',
         toDate: existingActivity.endDate?.split('T')[0] || '',
         billNo: '',
@@ -303,23 +304,21 @@ export function ActivityFormPage() {
                   name="clientId"
                   control={control}
                   render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className={errors.clientId ? 'border-red-500' : ''}>
-                        <SelectValue placeholder="Select client" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {clients.map((client) => (
-                          <SelectItem key={client.id} value={client.id}>
-                            {client.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <ClientCombobox
+                      clients={clients}
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      placeholder="Select or create client..."
+                      error={!!errors.clientId}
+                    />
                   )}
                 />
                 {errors.clientId && (
                   <p className="text-sm text-red-500">{errors.clientId.message}</p>
                 )}
+                <p className="text-xs text-gray-500">
+                  Select existing or type a new name to create
+                </p>
               </div>
 
               {/* Previous Client (conditional - only for shift) */}
@@ -332,18 +331,13 @@ export function ActivityFormPage() {
                     name="previousClientId"
                     control={control}
                     render={({ field }) => (
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <SelectTrigger className={errors.previousClientId ? 'border-red-500' : ''}>
-                          <SelectValue placeholder="Select previous client" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {clients.map((client) => (
-                            <SelectItem key={client.id} value={client.id}>
-                              {client.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <ClientCombobox
+                        clients={clients}
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        placeholder="Select or create previous client..."
+                        error={!!errors.previousClientId}
+                      />
                     )}
                   />
                   {errors.previousClientId && (
@@ -353,15 +347,15 @@ export function ActivityFormPage() {
                 </div>
               )}
 
-              {/* Date of Purchase */}
+              {/* Date of Publish */}
               <FormField
-                name="dateOfPurchase"
-                label="Date of Purchase"
+                name="dateOfPublish"
+                label="Date of Publish"
                 type="date"
                 register={register}
-                error={errors.dateOfPurchase}
+                error={errors.dateOfPublish}
                 required
-                helperText="When this booking was purchased"
+                helperText="When this booking was published"
               />
 
               {/* From Date */}
@@ -420,6 +414,7 @@ export function ActivityFormPage() {
                       <SelectContent>
                         <SelectItem value="quotation">Quotation</SelectItem>
                         <SelectItem value="bill">Bill</SelectItem>
+                        <SelectItem value="foc">FOC</SelectItem>
                       </SelectContent>
                     </Select>
                   )}
