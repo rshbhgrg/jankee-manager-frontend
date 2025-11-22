@@ -171,7 +171,7 @@ const fallbackConfig = {
 export function StatusBadge({ variant, label, showDot = false, className }: StatusBadgeProps) {
   const config = variantConfig[variant] ?? fallbackConfig;
 
-  if (process.env.NODE_ENV !== 'production' && !variantConfig[variant]) {
+  if (import.meta.env.DEV && !variantConfig[variant]) {
     console.warn(`StatusBadge: unsupported variant "${variant}", falling back to default styling.`);
   }
 

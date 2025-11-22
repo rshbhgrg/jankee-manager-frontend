@@ -56,7 +56,7 @@ export const formatDateForAPI = (date: Date): string => {
 /**
  * Format currency (Indian Rupees)
  *
- * @param amount - Number to format
+ * @param amount - Number or string to format
  * @param includeSymbol - Whether to include ₹ symbol (default: true)
  * @returns Formatted currency string
  *
@@ -65,13 +65,14 @@ export const formatDateForAPI = (date: Date): string => {
  * formatCurrency(25000.50) // '₹25,000.50'
  * formatCurrency(25000, false) // '25,000'
  */
-export const formatCurrency = (amount: number, includeSymbol = true): string => {
+export const formatCurrency = (amount: number | string, includeSymbol = true): string => {
+  const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
   const formatted = new Intl.NumberFormat(CURRENCY.LOCALE, {
     style: includeSymbol ? 'currency' : 'decimal',
     currency: includeSymbol ? CURRENCY.CODE : undefined,
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
-  }).format(amount);
+  }).format(numericAmount);
 
   return formatted;
 };

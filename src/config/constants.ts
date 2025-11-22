@@ -95,6 +95,7 @@ export const QUERY_KEYS = {
 export const ROUTES = {
   HOME: '/',
   DASHBOARD: '/',
+  LOGIN: '/login',
 
   // Sites
   SITES: '/sites',

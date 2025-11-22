@@ -72,7 +72,7 @@ export function SiteFormPage() {
         location: existingSite.location,
         type: existingSite.type,
         size: existingSite.size,
-        remarks: existingSite.remarks || '',
+        remarks: existingSite.notes || '',
       });
     }
   }, [existingSite, isEditMode, reset]);

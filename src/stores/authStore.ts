@@ -12,7 +12,6 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { STORAGE_KEYS } from '@/config/constants';
 import type { User, UserRole } from '@/types/user';
 
 // Re-export User type for convenience

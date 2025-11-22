@@ -7,7 +7,7 @@
 
 import apiClient from './api';
 import type { Activity, CreateActivityRequest, ActivityFilters } from '@/types';
-import type { ActivityWithRelations, transformActivityWithRelations } from '@/types/activity.types';
+import type { ActivityWithRelations } from '@/types/activity.types';
 import { transformActivityWithRelations as transformActivity } from '@/types/activity.types';
 
 /**

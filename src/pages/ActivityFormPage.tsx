@@ -12,7 +12,7 @@
  * Route: /activities/new (create) or /activities/:id/edit (edit)
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -40,7 +40,7 @@ import { useClientsQuery } from '@/hooks/useClients';
 import { useSitesQuery } from '@/hooks/useSites';
 import { activitySchema, type ActivityFormData } from '@/lib/utils/validation';
 import { ROUTES } from '@/config/constants';
-import type { ActionType, BillType } from '@/types';
+import type { ActionType } from '@/types';
 
 /**
  * Activity Form Page Component
@@ -79,12 +79,12 @@ export function ActivityFormPage() {
       date: new Date().toISOString().split('T')[0] ?? '',
       clientId: '',
       siteId: '',
-      action: '',
+      action: 'new' as ActionType,
       dateOfPublish: new Date().toISOString().split('T')[0] ?? '',
       fromDate: new Date().toISOString().split('T')[0] ?? '',
       toDate: '',
       billNo: '',
-      billType: '',
+      billType: undefined,
       ratePerMonth: undefined,
       remarks: '',
       previousClientId: '',
@@ -109,7 +109,7 @@ export function ActivityFormPage() {
         fromDate: existingActivity.startDate?.split('T')[0] ?? '',
         toDate: existingActivity.endDate?.split('T')[0] || '',
         billNo: '',
-        billType: '',
+        billType: undefined,
         ratePerMonth: existingActivity.ratePerMonth
           ? typeof existingActivity.ratePerMonth === 'string'
             ? parseFloat(existingActivity.ratePerMonth)
@@ -160,7 +160,7 @@ export function ActivityFormPage() {
       updateActivity(
         { id, data: apiData },
         {
-          onSuccess: (updatedActivity) => {
+          onSuccess: () => {
             navigate(ROUTES.ACTIVITIES);
           },
         }
@@ -168,7 +168,7 @@ export function ActivityFormPage() {
     } else {
       // Create new activity
       createActivity(apiData, {
-        onSuccess: (newActivity) => {
+        onSuccess: () => {
           navigate(ROUTES.ACTIVITIES);
         },
       });

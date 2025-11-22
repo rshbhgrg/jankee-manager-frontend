@@ -122,8 +122,8 @@ export const getMonthsBetween = (startDate: string, endDate?: string): number =>
  */
 export const isActivityActive = (activity: Activity): boolean => {
   const today = new Date().toISOString().split('T')[0] ?? '';
-  const isAfterStart = activity.fromDate <= today;
-  const isBeforeEnd = !activity.toDate || activity.toDate >= today;
+  const isAfterStart = activity.startDate <= today;
+  const isBeforeEnd = !activity.endDate || activity.endDate >= today;
   return isAfterStart && isBeforeEnd;
 };
 
@@ -136,8 +136,12 @@ export const isActivityActive = (activity: Activity): boolean => {
 export const calculateTotalRevenue = (activities: Activity[]): number => {
   return activities.reduce((total, activity) => {
     if (!activity.ratePerMonth) return total;
-    const months = getMonthsBetween(activity.fromDate, activity.toDate);
-    return total + activity.ratePerMonth * months;
+    const ratePerMonth =
+      typeof activity.ratePerMonth === 'string'
+        ? parseFloat(activity.ratePerMonth)
+        : activity.ratePerMonth;
+    const months = getMonthsBetween(activity.startDate, activity.endDate ?? undefined);
+    return total + ratePerMonth * months;
   }, 0);
 };
 
@@ -150,7 +154,7 @@ export const calculateTotalRevenue = (activities: Activity[]): number => {
 export const groupActivitiesByMonth = (activities: Activity[]): Record<string, Activity[]> => {
   return activities.reduce(
     (groups, activity) => {
-      const month = activity.date.substring(0, 7); // YYYY-MM
+      const month = activity.startDate.substring(0, 7); // YYYY-MM
       if (!groups[month]) {
         groups[month] = [];
       }
@@ -169,7 +173,7 @@ export const groupActivitiesByMonth = (activities: Activity[]): Record<string, A
  */
 export const sortActivitiesByDate = (activities: Activity[]): Activity[] => {
   return [...activities].sort((a, b) => {
-    return new Date(b.date).getTime() - new Date(a.date).getTime();
+    return new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
   });
 };
 
@@ -187,7 +191,7 @@ export const filterActivitiesByDateRange = (
   toDate: string
 ): Activity[] => {
   return activities.filter((activity) => {
-    return activity.date >= fromDate && activity.date <= toDate;
+    return activity.startDate >= fromDate && activity.startDate <= toDate;
   });
 };
 

@@ -7,11 +7,7 @@
 
 import apiClient from './api';
 import type { DashboardStats, DashboardMetrics } from '@/types';
-import type {
-  Activity,
-  ActivityWithRelations,
-  transformActivityWithRelations,
-} from '@/types/activity.types';
+import type { Activity, ActivityWithRelations } from '@/types/activity.types';
 import { transformActivityWithRelations as transformActivity } from '@/types/activity.types';
 
 /**

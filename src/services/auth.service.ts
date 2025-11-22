@@ -162,7 +162,11 @@ class AuthService {
 
     // Check if token is expired (basic check)
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
+      const tokenParts = token.split('.');
+      if (tokenParts.length < 2 || !tokenParts[1]) {
+        return false;
+      }
+      const payload = JSON.parse(atob(tokenParts[1]));
       const expiry = payload.exp * 1000; // Convert to milliseconds
       return Date.now() < expiry;
     } catch (error) {
@@ -182,9 +186,9 @@ class AuthService {
     }
 
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
+      const payload = JSON.parse(atob(token.split('.')[1] ?? ''));
       return {
-        userId: payload.userId,
+        id: payload.userId,
         email: payload.email,
         role: payload.role,
       };
